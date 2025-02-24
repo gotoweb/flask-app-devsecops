@@ -6,9 +6,32 @@ phases:
       - |
         echo $CODEBUILD_SOURCE_VERSION
         export OBJECT_KEY=$(echo $CODEBUILD_SOURCE_VERSION | cut -d'/' -f2-)
-        export BUCKET_NAME=$(echo $CODEBUILD_SOURCE_VERSION | cut -d'/' -f1)
+        export BUCKET_NAME=$(echo $CODEBUILD_SOURCE_VERSION | cut -d':' -f6 | cut -d'/' -f1)
 
         echo Build started on `date`
         dt=$(date +%F-%H%M%S)
         codeReviewArn=$(aws codeguru-reviewer create-code-review --repository-association-arn $CODEGURU_ASSOCIATION --type '{"RepositoryAnalysis":{"SourceCodeType":{"S3BucketRepository":{"Name":'\"${CODEGURU_REPO_NAME}\"',"Details":{"BucketName":'\"${BUCKET_NAME}\"',"CodeArtifacts":{"SourceCodeArtifactsObjectKey":"${OBJECT_KEY}"}}}}}}' --name flask-app-analysis-$dt | jq -r '.CodeReview.CodeReviewArn')
         echo "Waiting for code review results: $codeReviewArn..."
+
+        codeReviewState='Pending'
+        while [ $codeReviewState == 'Pending' ];
+        do
+          sleep 5
+          codeReviewResult=$(aws codeguru-reviewer describe-code-review --code-review-arn=$codeReviewArn)
+          codeReviewState=$(echo $codeReviewResult | jq -r '.CodeReview.State')
+          echo "Scan in progress. Current status: $codeReviewState"
+        done
+
+        if [ $codeReviewState == 'Completed' ];
+        then
+          codeReviewFindings=$(echo $codeReviewResult | jq -r '.CodeReview.Metrics.FindingsCount')
+          echo "Code review $codeReviewArn completed successfully with $codeReviewFindings findings. You may now check CodeGuru Reviewer dashboard to see the detailed results"
+        elif [ $codeReviewState == 'Failed' ];
+        then
+          echo "Code review $codeReviewArn failed, you may check the reason in CodeGuru Reviewer dashboard"
+        else
+          echo "Code review $codeReviewArn returned an unhandled status, failing build"
+          exit 1;
+        fi
+
+        echo Build completed on `date`
