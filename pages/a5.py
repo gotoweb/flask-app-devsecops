@@ -37,7 +37,7 @@ def a5_auth():
     # Generate SessionID
     session_id = generate_session(username)
     response = make_response(redirect("/owasp/A5/profile/{}".format(username)))
-    response.set_cookie("sessionId", session_id)
+    response.set_cookie("sessionId", session_id, httponly=True)
     
     return response
 

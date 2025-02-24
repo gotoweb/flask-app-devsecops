@@ -1,7 +1,7 @@
 from flask import (
     Blueprint,
     request,
-    render_template_string
+    render_template
 )
 
 bp = Blueprint(
@@ -12,10 +12,5 @@ bp = Blueprint(
 
 @bp.route("/A7")
 def a7():
-    ### Cross-Site Scripting (XSS)
     name = request.args.get("name", "")
-    with open("templates/a7.html") as f:
-        template = f.read()
-    content = template.replace("{{ name }}", name)
-    
-    return render_template_string(content)
+    return render_template("a7.html", name=name)
