@@ -4,8 +4,11 @@ phases:
   build:
     commands:
       - |
-        echo $CODEBUILD_RESOLVED_SOURCE_VERSION
-        echo $CODEBUILD_SOURCE_REPO_URL
         echo $CODEBUILD_SOURCE_VERSION
-        ls $CODEBUILD_SRC_DIR
-        
+        export OBJECT_KEY=$(echo $CODEBUILD_SOURCE_VERSION | cut -d'/' -f2-)
+        export BUCKET_NAME=$(echo $CODEBUILD_SOURCE_VERSION | cut -d'/' -f1)
+
+        echo Build started on `date`
+        dt=$(date +%F-%H%M%S)
+        codeReviewArn=$(aws codeguru-reviewer create-code-review --repository-association-arn $CODEGURU_ASSOCIATION --type '{"RepositoryAnalysis":{"SourceCodeType":{"S3BucketRepository":{"Name":'\"${CODEGURU_REPO_NAME}\"',"Details":{"BucketName":'\"${BUCKET_NAME}\"',"CodeArtifacts":{"SourceCodeArtifactsObjectKey":"${OBJECT_KEY}"}}}}}}' --name flask-app-analysis-$dt | jq -r '.CodeReview.CodeReviewArn')
+        echo "Waiting for code review results: $codeReviewArn..."
