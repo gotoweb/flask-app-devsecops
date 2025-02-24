@@ -4,6 +4,8 @@ phases:
   build:
     commands:
       - |
+        echo $CODEBUILD_RESOLVED_SOURCE_VERSION
         echo $CODEBUILD_SOURCE_REPO_URL
+        echo $CODEBUILD_SOURCE_VERSION
         ls $CODEBUILD_SRC_DIR
         
