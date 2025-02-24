@@ -8,9 +8,12 @@ phases:
         export OBJECT_KEY=$(echo $CODEBUILD_SOURCE_VERSION | cut -d'/' -f2-)
         export BUCKET_NAME=$(echo $CODEBUILD_SOURCE_VERSION | cut -d':' -f6 | cut -d'/' -f1)
 
+        zip -r output.zip $CODEBUILD_SRC_DIR
+        aws s3 cp output.zip s3://$CODEGURU_BUCKET_NAME/output.zip
+
         echo Build started on `date`
         dt=$(date +%F-%H%M%S)
-        codeReviewArn=$(aws codeguru-reviewer create-code-review --repository-association-arn $CODEGURU_ASSOCIATION --type '{"RepositoryAnalysis":{"SourceCodeType":{"S3BucketRepository":{"Name":'\"${CODEGURU_REPO_NAME}\"',"Details":{"BucketName":'\"${BUCKET_NAME}\"',"CodeArtifacts":{"SourceCodeArtifactsObjectKey":'\"${OBJECT_KEY}\"'}}}}}}' --name flask-app-analysis-$dt | jq -r '.CodeReview.CodeReviewArn')
+        codeReviewArn=$(aws codeguru-reviewer create-code-review --repository-association-arn $CODEGURU_ASSOCIATION --type '{"RepositoryAnalysis":{"SourceCodeType":{"S3BucketRepository":{"Name":'\"${CODEGURU_REPO_NAME}\"',"Details":{"BucketName":'\"${CODEGURU_BUCKET_NAME}\"',"CodeArtifacts":{"SourceCodeArtifactsObjectKey":"output.zip"}}}}}}' --name flask-app-analysis-$dt | jq -r '.CodeReview.CodeReviewArn')
         echo "Waiting for code review results: $codeReviewArn..."
 
         codeReviewState='Pending'
