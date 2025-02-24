@@ -1,0 +1,12 @@
+version: 0.1
+
+phases:
+  pre_build:
+    commands:
+      - echo Installing SCA tool...
+      - pip install pip-audit
+  build:
+    commands:
+      - echo Entered the post_build phase...
+      - echo Build completed on `date`
+      - pip-audit -r requirements.txt
