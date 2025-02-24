@@ -4,7 +4,6 @@ phases:
   build:
     commands:
       - |
-        export S3_KEY=$(ls /codebuild/input/PreviousBuildArtifact/)
-        export S3_ARN="arn:aws:s3:::appsecworkshopstack-pipelineartifactsbucketaea9a05-ndvwegsndzci/devsecops-pipeline/GitHubArti/${S3_KEY}"
-        echo $S3_ARN
+        echo $CODEBUILD_SOURCE_REPO_URL
+        ls $CODEBUILD_SRC_DIR
         
