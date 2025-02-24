@@ -1,7 +1,7 @@
 from flask import (
     Blueprint,
     request,
-    render_template_string
+    render_template
 )
 
 bp = Blueprint(
@@ -12,9 +12,5 @@ bp = Blueprint(
 
 @bp.route("/A1")
 def a1():
-    ### Server-Side Template Injection
     name = request.args.get("name", "")
-    with open("templates/a1.html") as f:
-        template = f.read()
-    content = template.replace("{{ name }}", name)
-    return render_template_string(content)
+    return render_template("a1.html", name=name)
