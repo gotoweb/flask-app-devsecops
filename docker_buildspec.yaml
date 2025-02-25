@@ -5,6 +5,7 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+      - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin v0.59.1
   build:
     commands:
       - echo Build started on `date`
@@ -12,6 +13,7 @@ phases:
       - docker tag $ECR_REPO_URI:latest $ECR_REPO_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION
   post_build:
     commands:
+      - trivy
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push $ECR_REPO_URI:latest
