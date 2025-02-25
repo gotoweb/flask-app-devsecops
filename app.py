@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 
 from pages import (
@@ -13,10 +14,17 @@ from pages import (
 )
 
 import models
+from flask_wtf.csrf import CSRFProtect
 
 ### Initialize App
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+### Enable CSRF
+app.config['SECRET_KEY'] = os.urandom(32)
+csrf = CSRFProtect()
+csrf.init_app(app)
+
 
 ### Register blueprints
 app.register_blueprint(index.bp)
@@ -34,3 +42,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///user.db"
 models.db.init_app(app)
 models.db.app = app
 models.bootstrap(app)
+
+### Add Security Headers
+@app.after_request
+def add_security_headers(r):
+    r.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    return r
