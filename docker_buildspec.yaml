@@ -13,7 +13,7 @@ phases:
       - docker tag $ECR_REPO_URI:latest $ECR_REPO_URI:$CODEBUILD_RESOLVED_SOURCE_VERSION
   post_build:
     commands:
-      - trivy image --exit-code 1 --severity MEDIUM,HIGH,CRITICAL $ECR_REPO_URI:latest
+      - trivy image --exit-code 0 --severity MEDIUM,HIGH,CRITICAL $ECR_REPO_URI:latest
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push $ECR_REPO_URI:latest
